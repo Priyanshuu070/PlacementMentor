@@ -1,6 +1,6 @@
 "use client";
 import React from 'react'
-import { AppSidebar } from './_components/AppSidebar'
+import { AppSidebar } from '@/components/dashboard/AppSidebar'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import WelcomeContainer from './dashboard/_components/WelcomeContainer'
 
