@@ -10,54 +10,163 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-// Updated to single form layout
-function FormContainer({ formData, updateFormData, errors = {} }) {
-  // This ensures our component can render even if props aren't provided
+// Experience level mapping
+const experienceLevelMap = {
+  'Fresher': 'entry',
+  '1-3 Years': 'mid',
+  '3-5 Years': 'senior',
+  '5+ Years': 'expert'
+};
+
+// Duration mapping
+const durationMap = {
+  '10 mins': 10,
+  '20 mins': 20,
+  '30 mins': 30
+};
+
+function FormContainer({ formData, updateFormData, errors = {}, isFromUpload = false }) {
   const data = formData || {};
   const updateData = updateFormData || (() => {});
 
   // Helper function to display error message
   const ErrorMessage = ({ field }) => {
     if (!errors[field]) return null;
-    return <p className="text-red-500 text-sm mt-1">{errors[field]}</p>;
+    return <p style={{ color: 'var(--error)', fontSize: '13px', marginTop: '4px' }}>{errors[field]}</p>;
   };
 
   return (
-    <div className='p-6 bg-white rounded-lg shadow-sm border border-gray-100'>
-      <div className='text-center mb-8'>
-        <h2 className='text-2xl font-bold mb-2 text-gray-800'>Create Your Interview</h2>
-        <p className='text-gray-600'>Fill in the essential details below to generate customized interview questions</p>
+    <div style={{
+      backgroundColor: 'var(--bg-white)',
+      borderRadius: '12px',
+      border: '1px solid var(--border-default)',
+      padding: '32px'
+    }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          marginBottom: '8px'
+        }}>
+          Interview Details
+        </h2>
+        <p style={{
+          fontSize: '14px',
+          color: 'var(--text-secondary)'
+        }}>
+          Fill in the details to generate personalized interview questions
+        </p>
       </div>
       
-      {/* Single Form with Essential Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '24px'
+      }}>
         {/* Job Position */}
-        <div className="md:col-span-2">
-          <h3 className='text-lg font-semibold mb-2'>Job Position *</h3>
-          <Input 
-            placeholder="e.g., Frontend Developer, Data Scientist, Product Manager" 
-            value={data.jobPosition || ''} 
-            onChange={(e) => updateData('jobPosition', e.target.value)}
-            className={errors.jobPosition ? 'border-red-500' : ''}
-          />
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            Job Position *
+          </label>
+          {isFromUpload ? (
+            <div style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '8px',
+              padding: '12px',
+              fontSize: '14px',
+              color: 'var(--text-primary)'
+            }}>
+              {data.jobPosition || 'Not specified'}
+            </div>
+          ) : (
+            <Input 
+              placeholder="e.g., Frontend Developer, Data Scientist, Product Manager" 
+              value={data.jobPosition || ''} 
+              onChange={(e) => updateData('jobPosition', e.target.value)}
+              style={{
+                borderColor: errors.jobPosition ? 'var(--error)' : 'var(--border-default)'
+              }}
+            />
+          )}
           <ErrorMessage field="jobPosition" />
+        </div>
+
+        {/* Job Description */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            Job Description *
+          </label>
+          {isFromUpload ? (
+            <div style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '8px',
+              padding: '12px',
+              fontSize: '14px',
+              color: 'var(--text-primary)',
+              minHeight: '100px',
+              maxHeight: '200px',
+              overflow: 'auto'
+            }}>
+              {data.jobDescription 
+                ? (data.jobDescription.length > 200 
+                    ? data.jobDescription.substring(0, 200) + '...' 
+                    : data.jobDescription)
+                : 'Not specified'}
+            </div>
+          ) : (
+            <Textarea 
+              placeholder="Paste the full job description here..." 
+              value={data.jobDescription || ''} 
+              onChange={(e) => updateData('jobDescription', e.target.value)}
+              style={{
+                minHeight: '120px',
+                borderColor: errors.jobDescription ? 'var(--error)' : 'var(--border-default)'
+              }}
+            />
+          )}
+          <ErrorMessage field="jobDescription" />
         </div>
 
         {/* Experience Level */}
         <div>
-          <h3 className='text-lg font-semibold mb-2'>Experience Level *</h3>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            Experience Level *
+          </label>
           <Select 
             value={data.experienceLevel || ''} 
             onValueChange={(value) => updateData('experienceLevel', value)}
           >
-            <SelectTrigger className={`w-full ${errors.experienceLevel ? 'border-red-500' : ''}`}>
+            <SelectTrigger style={{
+              borderColor: errors.experienceLevel ? 'var(--error)' : 'var(--border-default)'
+            }}>
               <SelectValue placeholder="Select Experience Level" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="entry">Entry Level (0-2 years)</SelectItem>
-              <SelectItem value="mid">Mid Level (2-5 years)</SelectItem>
-              <SelectItem value="senior">Senior Level (5-8 years)</SelectItem>
-              <SelectItem value="expert">Expert Level (8+ years)</SelectItem>
+              <SelectItem value="Fresher">Fresher</SelectItem>
+              <SelectItem value="1-3 Years">1-3 Years</SelectItem>
+              <SelectItem value="3-5 Years">3-5 Years</SelectItem>
+              <SelectItem value="5+ Years">5+ Years</SelectItem>
             </SelectContent>
           </Select>
           <ErrorMessage field="experienceLevel" />
@@ -65,53 +174,84 @@ function FormContainer({ formData, updateFormData, errors = {} }) {
 
         {/* Interview Duration */}
         <div>
-          <h3 className='text-lg font-semibold mb-2'>Interview Duration *</h3>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            Interview Duration *
+          </label>
           <Select
             value={data.interviewDuration || ''}
             onValueChange={(value) => updateData('interviewDuration', value)}
           >
-            <SelectTrigger className={`w-full ${errors.interviewDuration ? 'border-red-500' : ''}`}>
+            <SelectTrigger style={{
+              borderColor: errors.interviewDuration ? 'var(--error)' : 'var(--border-default)'
+            }}>
               <SelectValue placeholder="Select Duration" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5 Min">5 minutes</SelectItem>
-              <SelectItem value="15 Min">15 minutes</SelectItem>
-              <SelectItem value="30 Min">30 minutes</SelectItem>
-              <SelectItem value="45 Min">45 minutes</SelectItem>
-              <SelectItem value="60 Min">1 hour</SelectItem>
+              <SelectItem value="10 mins">10 mins</SelectItem>
+              <SelectItem value="20 mins">20 mins</SelectItem>
+              <SelectItem value="30 mins">30 mins</SelectItem>
             </SelectContent>
           </Select>
           <ErrorMessage field="interviewDuration" />
         </div>
 
-        {/* Job Description */}
-        <div className="md:col-span-2">
-          <h3 className='text-lg font-semibold mb-2'>Job Description *</h3>
-          <Textarea 
-            placeholder="Briefly describe the role, key responsibilities, and main requirements..." 
-            className={`min-h-[120px] ${errors.jobDescription ? 'border-red-500' : ''}`}
-            value={data.jobDescription || ''} 
-            onChange={(e) => updateData('jobDescription', e.target.value)}
-          />
-          <ErrorMessage field="jobDescription" />
-        </div>
         {/* Difficulty Level */}
-        <div className="md:col-span-2">
-          <h3 className='text-lg font-semibold mb-2'>Difficulty Level *</h3>
-          <div className={`grid grid-cols-3 gap-4 ${errors.difficultyLevel ? 'border border-red-500 p-3 rounded-md' : ''}`}>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            marginBottom: '8px'
+          }}>
+            Difficulty Level *
+          </label>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '16px'
+          }}>
             {["Easy", "Medium", "Hard"].map((level) => (
               <div 
-                key={level} 
-                className={`border rounded-lg p-4 text-center cursor-pointer transition-all hover:scale-105
-                  ${data.difficultyLevel === level
-                    ? 'bg-primary/10 border-primary shadow-md' 
-                    : 'border-gray-200 hover:bg-gray-50'}`}
+                key={level}
                 onClick={() => updateData('difficultyLevel', level)}
+                style={{
+                  border: `2px solid ${data.difficultyLevel === level ? 'var(--primary-blue)' : 'var(--border-default)'}`,
+                  backgroundColor: data.difficultyLevel === level ? 'var(--primary-blue-light)' : 'var(--bg-white)',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (data.difficultyLevel !== level) {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-surface)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (data.difficultyLevel !== level) {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                  }
+                }}
               >
-                <div className={`font-semibold ${data.difficultyLevel === level ? 'text-primary' : 'text-gray-700'}`}>
+                <div style={{
+                  fontWeight: 600,
+                  color: data.difficultyLevel === level ? 'var(--primary-blue)' : 'var(--text-primary)',
+                  marginBottom: '4px'
+                }}>
                   {level}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)'
+                }}>
                   {level === 'Easy' && 'Basic concepts'}
                   {level === 'Medium' && 'Intermediate skills'}
                   {level === 'Hard' && 'Advanced topics'}
@@ -122,57 +262,6 @@ function FormContainer({ formData, updateFormData, errors = {} }) {
           <ErrorMessage field="difficultyLevel" />
         </div>
       </div>
-
-      {/* Summary Section */}
-      {(data.jobPosition || data.experienceLevel || data.interviewDuration) && (
-        <div className="mt-8 pt-6 border-t border-gray-200 bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-3 text-gray-800">Interview Preview</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            {data.jobPosition && (
-              <div>
-                <span className="font-medium text-gray-600">Position:</span>
-                <p className="text-gray-800">{data.jobPosition}</p>
-              </div>
-            )}
-            {data.experienceLevel && (
-              <div>
-                <span className="font-medium text-gray-600">Level:</span>
-                <p className="text-gray-800">
-                  {{
-                    'entry': 'Entry Level',
-                    'mid': 'Mid Level',
-                    'senior': 'Senior Level',
-                    'expert': 'Expert Level'
-                  }[data.experienceLevel]}
-                </p>
-              </div>
-            )}
-            {data.interviewDuration && (
-              <div>
-                <span className="font-medium text-gray-600">Duration:</span>
-                <p className="text-gray-800">{data.interviewDuration}</p>
-              </div>
-            )}
-            {data.difficultyLevel && (
-              <div>
-                <span className="font-medium text-gray-600">Difficulty:</span>
-                <p className="text-gray-800">{data.difficultyLevel}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Completion Status */}
-      {data.jobPosition && data.experienceLevel && data.interviewDuration && data.jobDescription && 
-       data.difficultyLevel && (
-        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 text-green-700">
-            <span className="text-lg">✅</span>
-            <span className="font-medium">All required fields completed! Ready to create your interview.</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

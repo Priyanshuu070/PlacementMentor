@@ -1,5 +1,6 @@
 "use client";
 import { UserDetailContext } from '@/context/UserDetail.context';
+import { ResumeAnalysisProvider } from '@/context/ResumeAnalysis.context';
 import { supabase } from '@/services/supabaseClient';
 import { useRouter } from 'next/navigation'; // ✅ correct for app dir
 import React, { useEffect } from 'react';
@@ -70,7 +71,9 @@ function Provider({ children }) {
 
   return (
     <UserDetailContext.Provider value={{ user, setUser }}>
-      {children}
+      <ResumeAnalysisProvider>
+        {children}
+      </ResumeAnalysisProvider>
     </UserDetailContext.Provider>
   );
 }

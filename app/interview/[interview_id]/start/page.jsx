@@ -12,7 +12,7 @@ import { API_CONFIG, ERROR_MESSAGES } from '@/lib/constants';
 function Interview() {
   const { interview_id } = useParams();
   const router = useRouter();
-  const [interviewData, setInterviewData] = useContext(InterviewDetailsContext);
+  const [interviewData, setInterviewData] = useState(null);
   const user = useUser();
   const vapiInstanceRef = useRef(null);
 
@@ -28,6 +28,60 @@ function Interview() {
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
 
   const [Conversation, setConversation] = useState([]);
+
+  // Fetch interview data from Supabase using URL params
+  useEffect(() => {
+    const fetchInterviewData = async () => {
+      if (!interview_id) {
+        console.log('No interview_id in URL params');
+        setLoadError(true);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        console.log('Fetching interview data for ID:', interview_id);
+
+        // Fetch from InterviewDetails table
+        const { data, error } = await supabase
+          .from('InterviewDetails')
+          .select('*')
+          .eq('interview_id', interview_id)
+          .single();
+
+        if (error) {
+          console.log('Error fetching interview data:', error.message);
+          setLoadError(true);
+          setLoading(false);
+          return;
+        }
+
+        if (!data) {
+          console.log('No interview data found for ID:', interview_id);
+          setLoadError(true);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Interview data fetched successfully:', data);
+        
+        // Structure the data to match expected format
+        setInterviewData({
+          interviewData: data,
+          username: user?.user?.name || user?.user?.email?.split('@')[0] || 'Guest'
+        });
+        
+        setLoading(false);
+      } catch (err) {
+        console.log('Exception while fetching interview data:', err.message);
+        setLoadError(true);
+        setLoading(false);
+      }
+    };
+
+    fetchInterviewData();
+  }, [interview_id, user]);
 
   useEffect(() => {
     if (interviewData) {
@@ -207,7 +261,7 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
             // This is expected - don't show error
             return;
           }
-          alert("Failed to start the interview call. Please check your microphone and try again.");
+          console.log("Failed to start the interview call. Please check your microphone and try again.");
         });
       
       // Enhanced message and transcript handling
@@ -258,7 +312,7 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
       });
       
     } catch (error) {
-      alert("Failed to start the interview call. Please try again.");
+      console.log("Failed to start the interview call. Please try again.");
     }
   };
 
@@ -295,12 +349,12 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
   };
   const GenerateFeedback = async () => {
     if (!interviewData) {
-      alert('No interview data available for feedback generation');
+      console.log('No interview data available for feedback generation');
       return;
     }
     
     // Debug: Check conversation data
-    alert(`Generating feedback with ${Conversation.length} conversation items`);
+    console.log(`Generating feedback with ${Conversation.length} conversation items`);
     
     try {
       // Check if feedback already exists for this interview
@@ -311,18 +365,18 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
         .limit(1);
         
       if (checkError && checkError.code !== 'PGRST116') {
-        alert('Error checking existing feedback: ' + checkError.message);
+        console.log('Error checking existing feedback: ' + checkError.message);
         return;
       }
       
       if (existingFeedback && existingFeedback.length > 0) {
-        alert('Feedback already exists for this interview');
+        console.log('Feedback already exists for this interview');
         return;
       }
       
       // Check if we have conversation data
       if (!Conversation || Conversation.length === 0) {
-        alert('No conversation data found. Creating default feedback.');
+        console.log('No conversation data found. Creating default feedback.');
         // Create a default feedback entry to avoid errors
         const defaultFeedback = {
           feedback: {
@@ -348,14 +402,14 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
           ]);
           
         if (insertError) {
-          alert('Error inserting default feedback: ' + insertError.message);
+          console.log('Error inserting default feedback: ' + insertError.message);
         } else {
-          alert('Default feedback created successfully');
+          console.log('Default feedback created successfully');
         }
         return;
       }
 
-      alert('Calling AI feedback API with conversation data...');
+      console.log('Calling AI feedback API with conversation data...');
       const result = await fetch('/api/ai-feedback', {
         method: 'POST',
         headers: {
@@ -368,19 +422,19 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
       
       if (!result.ok) {
         const errorText = await result.text();
-        alert(`API request failed with status ${result.status}: ${errorText}`);
+        console.log(`API request failed with status ${result.status}: ${errorText}`);
         throw new Error(`API request failed with status ${result.status}`);
       }
       
       const data = await result.json();
-      alert('AI feedback generated successfully!');
+      console.log('AI feedback generated successfully!');
       
       if (!data || typeof data !== 'object') {
-        alert('Invalid feedback data received from API');
+        console.log('Invalid feedback data received from API');
         throw new Error("Invalid feedback data received from API");
       }
       
-      alert('Saving feedback to database...');
+      console.log('Saving feedback to database...');
       const { error: insertError } = await supabase
         .from('postinterview')
         .insert([
@@ -391,14 +445,14 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
         ]);
         
       if (insertError) {
-        alert('Database insert failed: ' + insertError.message);
+        console.log('Database insert failed: ' + insertError.message);
         throw new Error(`Database insert failed: ${insertError.message}`);
       } else {
-        alert('Feedback saved successfully!');
+        console.log('Feedback saved successfully!');
       }
         
     } catch (error) {
-      alert('Error in feedback generation: ' + error.message);
+      console.log('Error in feedback generation: ' + error.message);
       
       // Create a fallback feedback entry so the feedback page doesn't crash
       try {
@@ -410,11 +464,11 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
           .limit(1);
           
         if (doubleCheck && doubleCheck.length > 0) {
-          alert('Feedback already exists, skipping fallback creation');
+          console.log('Feedback already exists, skipping fallback creation');
           return;
         }
         
-        alert('Creating fallback feedback...');
+        console.log('Creating fallback feedback...');
         const fallbackFeedback = {
           feedback: {
             summary: "Interview completed but feedback generation encountered an error: " + error.message,
@@ -440,12 +494,12 @@ Wrap up after 5 questions with: "Thank you for your time. The interview is now c
           ]);
           
         if (fallbackError) {
-          alert('Error inserting fallback feedback: ' + fallbackError.message);
+          console.log('Error inserting fallback feedback: ' + fallbackError.message);
         } else {
-          alert('Fallback feedback created successfully');
+          console.log('Fallback feedback created successfully');
         }
       } catch (fallbackError) {
-        alert('Failed to insert fallback feedback: ' + fallbackError.message);
+        console.log('Failed to insert fallback feedback: ' + fallbackError.message);
       }
     }
   };

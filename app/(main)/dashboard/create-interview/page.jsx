@@ -1,14 +1,15 @@
 "use client";
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation';
-import React from 'react'
+import React, { useEffect } from 'react'
 import FormContainer from './_components/FormContainer';
 import ConfirmationModal from './_components/ConfirmationModal';
 import QuestionList from './_components/QuestionList';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/services/supabaseClient';
 import { useUser } from '@/app/provider';
-import { toast } from 'sonner'; 
+import { toast } from 'sonner';
+import { useResumeAnalysis } from '@/context/ResumeAnalysis.context';
 
 // Helper function to extract numeric value from duration string
 const extractDurationMinutes = (durationString) => {
@@ -17,9 +18,27 @@ const extractDurationMinutes = (durationString) => {
   return match ? parseInt(match[0]) : 30;
 };
 
+// Experience level mapping
+const experienceLevelMap = {
+  'Fresher': 'entry',
+  '1-3 Years': 'mid',
+  '3-5 Years': 'senior',
+  '5+ Years': 'expert'
+};
+
+// Duration mapping
+const durationMap = {
+  '10 mins': 10,
+  '20 mins': 20,
+  '30 mins': 30
+};
+
 function CreateInterview() {
   const user = useUser()
   const router = useRouter();
+  const { resumeData } = useResumeAnalysis();
+  const isFromUpload = resumeData?.userIntent === 'full_prep';
+
   const [errors, setErrors] = React.useState({});
   const [showConfirmationModal, setShowConfirmationModal] = React.useState(false);
   const [formData, setFormData] = React.useState({
@@ -30,6 +49,17 @@ function CreateInterview() {
     difficultyLevel: ""
   });
 
+  // Pre-fill fields if coming from upload page
+  useEffect(() => {
+    if (isFromUpload && resumeData) {
+      setFormData(prev => ({
+        ...prev,
+        jobPosition: resumeData.jobPosition || '',
+        jobDescription: resumeData.jdText || ''
+      }));
+    }
+  }, [isFromUpload, resumeData]);
+
   const updateFormData = (field, value) => {
     // Clear any error for this field when user updates it
     setErrors(prev => ({
@@ -37,20 +67,16 @@ function CreateInterview() {
       [field]: undefined
     }));
 
-
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   }
   
-
   // Validate all required form fields
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
-
-    console.log("🔍 Validating form fields:", formData);
 
     if (!formData.jobPosition.trim()) {
       newErrors.jobPosition = "Job position is required";
@@ -68,14 +94,10 @@ function CreateInterview() {
       newErrors.interviewDuration = "Interview duration is required";
       isValid = false;
     }
-
     if (!formData.difficultyLevel) {
       newErrors.difficultyLevel = "Difficulty level is required";
       isValid = false;
     }
-
-    console.log("📋 Validation errors:", newErrors);
-    console.log("✅ Form is valid:", isValid);
 
     setErrors(newErrors);
     return isValid;
@@ -83,8 +105,6 @@ function CreateInterview() {
 
   // Check user credits
   const checkUserCredits = () => {
-    console.log("Checking user credits:", user?.user?.credits);
-    
     if (!user || !user.user) {
       toast.error("Please login to create an interview");
       return false;
@@ -107,21 +127,11 @@ function CreateInterview() {
   };
 
   const handleCreateInterview = () => {
-    console.log("🔍 handleCreateInterview called");
-    console.log("📝 Form data:", formData);
-    
     // Validate form and check credits
     if (validateForm()) {
-      console.log("✅ Form validation passed");
       if (checkUserCredits()) {
-        console.log("✅ Credit check passed");
         setShowConfirmationModal(true);
-      } else {
-        console.log("❌ Credit check failed");
       }
-    } else {
-      console.log("❌ Form validation failed");
-      console.log("🚨 Validation errors:", errors);
     }
   };
 
@@ -140,16 +150,20 @@ function CreateInterview() {
         return;
       }
       
-      // Clear console to make output more visible
-      console.clear();
-      console.log("%c Submitting form data to AI...", "color: blue; font-size: 16px;");
+      // Map display values to API values
+      const apiExperienceLevel = experienceLevelMap[formData.experienceLevel] || formData.experienceLevel;
+      const apiDuration = durationMap[formData.interviewDuration] || extractDurationMinutes(formData.interviewDuration);
       
-      // Prepare the form data with defaults for optional fields that the API expects
+      // Prepare the form data for API
       const submissionData = {
-        ...formData,
+        jobPosition: formData.jobPosition,
+        jobDescription: formData.jobDescription,
+        experienceLevel: apiExperienceLevel,
+        interviewDuration: `${apiDuration} Min`,
+        difficultyLevel: formData.difficultyLevel
       };
       
-      console.table(submissionData);
+      console.log('Submitting to API:', submissionData);
       
       // Submit the form data to the API
       const response = await fetch('/api/ai-model', {
@@ -167,8 +181,7 @@ function CreateInterview() {
       const result = await response.json();
       
       if (result.success) {
-        console.log("%c Interview questions generated successfully!", "color: green; font-size: 20px; font-weight: bold");
-        console.log("Generated Questions:", result.questions);
+        console.log('Interview questions generated successfully!');
         
         // Generate a unique interview ID
         const interviewId = uuidv4();
@@ -185,7 +198,7 @@ function CreateInterview() {
             job_position: submissionData.jobPosition,
             job_description: submissionData.jobDescription,
             experience_level: submissionData.experienceLevel,
-            interview_time: extractDurationMinutes(submissionData.interviewDuration),
+            interview_time: apiDuration,
             interview_questions: result.questions,
             user_email: userEmail
           })
@@ -211,8 +224,6 @@ function CreateInterview() {
               toast.warning("Interview created but failed to update credits");
             } else {
               toast.success("Interview created successfully! 1 credit used.");
-              // Update local user state if you have a method to refresh user data
-              // user.refreshUser(); // Uncomment if you have this method
             }
           } catch (creditUpdateError) {
             console.error("Credit update failed:", creditUpdateError);
@@ -242,105 +253,187 @@ function CreateInterview() {
   };
   
   return (
-    <div className='w-full px-6 md:px-12 lg:px-24 xl:px-32 pt-4 max-w-6xl mx-auto'>
-        <div className='flex items-center gap-3 mb-6'>
-            <ArrowLeft 
-              onClick={() => router.back()} 
-              className='cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition-colors' 
-              size={36}
-            />
-            <div>
-              <h1 className='text-3xl font-bold text-gray-800'>Create New Interview</h1>
-              <p className='text-gray-600 text-sm mt-1'>Generate personalized questions for your interview practice</p>
-            </div>
-        </div>
-
-        {/* Display user credits */}
-        {user?.user && (
-          <div className='mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <span className='text-sm text-blue-700'>
-                  Available Credits: <strong className='text-lg'>{user.user.credits || 0}</strong>
-                </span>
-                <span className='text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded'>
-                  1 credit per interview
-                </span>
-              </div>
-              {(user.user.credits || 0) <= 0 && (
-                <button 
-                  onClick={() => router.push('/billing')}
-                  className='text-xs bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors'
-                >
-                  Add Credits
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-        
-        <FormContainer 
-          formData={formData} 
-          updateFormData={updateFormData}
-          errors={errors}
-        />
-        
-        <div className='mt-8 text-center'>
-          <p className='text-gray-600 mb-4 text-sm'>
-            Ready to create your interview? Make sure all required fields (*) are filled out.
+    <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '40px 24px'
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <button
+          onClick={() => router.back()}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px',
+            borderRadius: '8px',
+            transition: 'background 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--bg-surface)'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+        >
+          <ArrowLeft size={24} style={{ color: 'var(--text-primary)' }} />
+        </button>
+        <div>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            marginBottom: '4px'
+          }}>
+            Create Interview
+          </h1>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)'
+          }}>
+            Generate personalized questions for your interview practice
           </p>
-          <button 
-            onClick={() => {
-              console.log("🎯 Button clicked!");
-              console.log("👤 User:", user);
-              console.log("💰 Credits:", user?.user?.credits);
-              handleCreateInterview();
-            }} 
-            className={`px-12 py-4 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl font-semibold text-lg transition-all duration-200 ${
-              (!user?.user || user.user.credits <= 0) 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:shadow-xl hover:scale-105 hover:from-primary/90 hover:to-primary/70'
-            }`}
-            disabled={!user?.user || user.user.credits <= 0}
-          >
-            🚀 Create Interview Questions
-          </button>
-          {(!user?.user || user.user.credits <= 0) && (
-            <p className='text-red-500 text-sm mt-2'>
-              You need at least 1 credit to create an interview
-            </p>
+        </div>
+      </div>
+
+      {/* Banner - only shown when coming from upload */}
+      {isFromUpload && (
+        <div style={{
+          backgroundColor: 'var(--primary-blue-light)',
+          borderLeft: '3px solid var(--primary-blue)',
+          borderRadius: '8px',
+          padding: '16px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <Info size={20} style={{ color: 'var(--primary-blue)' }} />
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text-primary)',
+            margin: 0
+          }}>
+            Your resume is queued for analysis. Interview questions will be tailored to your skill gaps.
+          </p>
+        </div>
+      )}
+
+      {/* Display user credits */}
+      {user?.user && (
+        <div style={{
+          backgroundColor: 'var(--primary-blue-light)',
+          border: '1px solid var(--primary-blue-accent)',
+          borderRadius: '8px',
+          padding: '16px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              fontSize: '14px',
+              color: 'var(--primary-blue)'
+            }}>
+              Available Credits: <strong style={{ fontSize: '18px' }}>{user.user.credits || 0}</strong>
+            </span>
+            <span style={{
+              fontSize: '12px',
+              color: 'var(--primary-blue)',
+              backgroundColor: 'var(--primary-blue-accent)',
+              padding: '4px 8px',
+              borderRadius: '4px'
+            }}>
+              1 credit per interview
+            </span>
+          </div>
+          {(user.user.credits || 0) <= 0 && (
+            <button
+              onClick={() => router.push('/billing')}
+              className="btn-primary"
+              style={{
+                fontSize: '12px',
+                padding: '8px 16px'
+              }}
+            >
+              Add Credits
+            </button>
           )}
         </div>
-
-        {/* Confirmation Modal */}
-        <ConfirmationModal 
-          isOpen={showConfirmationModal}
-          onClose={() => !isSubmitting && setShowConfirmationModal(false)}
-          onConfirm={handleFinalSubmit}
-          formData={formData}
-          isSubmitting={isSubmitting}
-        />
-        
-        {/* Questions List Modal */}
-        {showQuestionList && (
-          <>
-          {console.log("-------Form data being passed to QuestionList:------", formData)}
-          <QuestionList 
-            questions={generatedQuestions}
-            formData={formData}
-            isLoading={isSubmitting}
-            interviewId={currentInterviewId}
-            onClose={() => {
-              setShowQuestionList(false);
-              router.push('/dashboard');
-            }}
-            onStartInterview={(interviewId) => {
-              setShowQuestionList(false);
-              router.push(`/interview/${interviewId}`);
-            }}
-          />
-        </>
+      )}
+      
+      <FormContainer 
+        formData={formData} 
+        updateFormData={updateFormData}
+        errors={errors}
+        isFromUpload={isFromUpload}
+      />
+      
+      <div style={{
+        marginTop: '32px',
+        textAlign: 'center'
+      }}>
+        <p style={{
+          color: 'var(--text-secondary)',
+          marginBottom: '16px',
+          fontSize: '14px'
+        }}>
+          Ready to create your interview? Make sure all required fields are filled out.
+        </p>
+        <button 
+          onClick={handleCreateInterview}
+          className="btn-primary"
+          disabled={!user?.user || user.user.credits <= 0}
+          style={{
+            padding: '16px 48px',
+            fontSize: '16px',
+            fontWeight: 600,
+            opacity: (!user?.user || user.user.credits <= 0) ? 0.5 : 1,
+            cursor: (!user?.user || user.user.credits <= 0) ? 'not-allowed' : 'pointer'
+          }}
+        >
+          Generate Interview Questions
+        </button>
+        {(!user?.user || user.user.credits <= 0) && (
+          <p style={{
+            color: 'var(--error)',
+            fontSize: '14px',
+            marginTop: '8px'
+          }}>
+            You need at least 1 credit to create an interview
+          </p>
         )}
+      </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal 
+        isOpen={showConfirmationModal}
+        onClose={() => !isSubmitting && setShowConfirmationModal(false)}
+        onConfirm={handleFinalSubmit}
+        formData={formData}
+        isSubmitting={isSubmitting}
+      />
+      
+      {/* Questions List Modal */}
+      {showQuestionList && (
+        <QuestionList 
+          questions={generatedQuestions}
+          formData={formData}
+          isLoading={isSubmitting}
+          interviewId={currentInterviewId}
+          onClose={() => {
+            setShowQuestionList(false);
+            router.push('/dashboard');
+          }}
+          onStartInterview={(interviewId) => {
+            setShowQuestionList(false);
+            router.push(`/interview/${interviewId}`);
+          }}
+        />
+      )}
     </div>
   )
 }
