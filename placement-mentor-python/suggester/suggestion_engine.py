@@ -38,7 +38,7 @@ def generate_suggestions(
     weight_mode = ats_result.get("weight_mode", "standard")
     isolated_skills = ats_result.get("isolated_skills", [])
     missing_skills = ats_result.get("missing_skills", missing)
-    skills_score = components.get("skills_score", 0)
+    coverage_score = ats_result.get("coverage_score", 0)
     word_count = ats_result.get("word_count", 0)
 
     # Rule 1: Domain inference mode notification
@@ -74,13 +74,13 @@ def generate_suggestions(
         suggestions.append(f"Add {skill} to your skills section")
 
     # Rule 5: Coverage score < 40%
-    if skills_score < 40 and weight_mode == "standard":
+    if coverage_score < 40 and weight_mode == "standard":
         suggestions.append(
             "Your resume matches less than 40% of required skills. "
             "Consider a significant rewrite targeting this role."
         )
     # Rule 6: Coverage score between 40-60%
-    elif 40 <= skills_score < 60 and weight_mode == "standard":
+    elif 40 <= coverage_score < 60 and weight_mode == "standard":
         suggestions.append(
             "Your resume partially matches this role. "
             "Focus on adding the missing technical skills."
