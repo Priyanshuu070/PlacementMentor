@@ -1,98 +1,175 @@
+"""Section parsing module for extracting resume sections."""
+
 import re
+from typing import Dict, List, Tuple
 
 
-# Section header keywords to look for
+# Section keywords for detection (case-insensitive matching)
 SECTION_KEYWORDS = {
     "skills": [
-        "skills", "technical skills", "core competencies",
-        "technologies", "tech stack", "tools", "expertise"
+        "skills", "technical skills", "core skills", "key skills",
+        "competencies", "technologies", "tech stack"
     ],
     "experience": [
-        "experience", "work experience", "employment",
-        "internship", "internships", "work history",
-        "professional experience", "industry experience"
+        "experience", "work experience", "employment", "professional experience",
+        "work history", "employment history", "career history"
     ],
     "projects": [
-        "projects", "personal projects", "academic projects",
-        "project work", "key projects", "notable projects"
+        "projects", "personal projects", "academic projects", "key projects",
+        "project experience", "project work"
     ],
     "education": [
         "education", "academic background", "qualifications",
-        "academic qualifications", "educational background"
+        "educational background", "academic qualifications", "academics"
     ],
     "summary": [
-        "summary", "objective", "about me", "profile",
-        "career objective", "professional summary"
+        "summary", "professional summary", "objective", "career objective",
+        "profile", "about me", "about", "career summary", "overview"
     ],
     "certifications": [
-        "certifications", "certificates", "courses",
-        "achievements", "awards"
+        "certifications", "certificates", "certification", "certificate",
+        "licenses", "credentials", "professional certifications"
     ]
 }
 
 
-def find_section_boundaries(text: str) -> dict:
+def _normalize_line(line: str) -> str:
     """
-    Finds the start index of each section in the resume text.
-    Uses keyword matching on individual lines.
-    Returns dict mapping section name to character index.
-    """
-    lines = text.split("\n")
-    boundaries = {}
+    Normalize a line for section header matching.
 
-    current_index = 0
+    Args:
+        line: Raw line from resume text.
+
+    Returns:
+        Lowercase, stripped line without trailing punctuation.
+    """
+    normalized = line.strip().lower()
+    # Remove trailing colons, dashes, or other punctuation
+    normalized = re.sub(r'[:\-–—]+\s*$', '', normalized)
+    return normalized.strip()
+
+
+def _detect_section_headers(text: str) -> List[Tuple[str, int, int]]:
+    """
+    Detect section headers and their positions in the text.
+
+    Args:
+        text: Resume text to analyze.
+
+    Returns:
+        List of tuples containing (section_name, start_index, line_end_index)
+        sorted by position in text.
+    """
+    headers = []
+    lines = text.split('\n')
+    current_pos = 0
+
     for line in lines:
-        normalized = line.strip().lower()
-        for section, keywords in SECTION_KEYWORDS.items():
-            if normalized in keywords or any(
-                normalized == kw or normalized.startswith(kw + ":")
-                for kw in keywords
-            ):
-                if section not in boundaries:
-                    boundaries[section] = current_index
-                break
-        current_index += len(line) + 1  # +1 for newline
+        line_start = current_pos
+        line_end = current_pos + len(line)
 
-    return boundaries
+        normalized = _normalize_line(line)
+
+        # Skip empty lines or very long lines (unlikely to be headers)
+        if not normalized or len(normalized) > 50:
+            current_pos = line_end + 1  # +1 for newline
+            continue
+
+        # Check each section type
+        for section_name, keywords in SECTION_KEYWORDS.items():
+            for keyword in keywords:
+                # Match if line equals keyword or starts with keyword
+                if normalized == keyword or normalized.startswith(keyword + " "):
+                    headers.append((section_name, line_start, line_end))
+                    break
+            else:
+                continue
+            break
+
+        current_pos = line_end + 1  # +1 for newline
+
+    # Sort by position
+    headers.sort(key=lambda x: x[1])
+
+    return headers
 
 
-def extract_sections(text: str) -> dict:
+def _extract_section_text(text: str, start: int, end: int) -> str:
     """
-    Splits resume text into named sections.
-    Falls back to returning full text under 'full_text'
-    if no sections are detected.
-    Returns dict with section names as keys and text as values.
+    Extract and clean section text between two positions.
+
+    Args:
+        text: Full resume text.
+        start: Start position (after header line).
+        end: End position (start of next section or end of text).
+
+    Returns:
+        Cleaned section text.
     """
-    boundaries = find_section_boundaries(text)
+    section_text = text[start:end].strip()
+    return section_text
 
-    if not boundaries:
-        # No sections found — treat entire text as one block
-        return {
-            "full_text": text,
-            "skills": "",
-            "experience": "",
-            "projects": "",
-            "education": "",
-            "summary": ""
-        }
 
-    # Sort sections by their position in the document
-    sorted_sections = sorted(boundaries.items(), key=lambda x: x[1])
+def extract_sections(text: str) -> Dict[str, str]:
+    """
+    Extract sections from resume text based on keyword matching.
 
-    sections = {}
-    for i, (section_name, start_idx) in enumerate(sorted_sections):
-        # End index is start of next section or end of text
-        if i + 1 < len(sorted_sections):
-            end_idx = sorted_sections[i + 1][1]
+    Detects common resume sections (skills, experience, projects, education,
+    summary, certifications) by matching header lines against known keywords.
+    Each section's content includes everything from the header until the next
+    detected section header.
+
+    Args:
+        text: Full resume text to parse.
+
+    Returns:
+        Dictionary containing:
+            - skills (str): Skills section content
+            - experience (str): Experience section content
+            - projects (str): Projects section content
+            - education (str): Education section content
+            - summary (str): Summary/objective section content
+            - certifications (str): Certifications section content
+            - full_text (str): Original full text if no sections detected,
+                              otherwise empty string
+    """
+    result = {
+        "skills": "",
+        "experience": "",
+        "projects": "",
+        "education": "",
+        "summary": "",
+        "certifications": "",
+        "full_text": ""
+    }
+
+    if not text or not text.strip():
+        return result
+
+    # Detect section headers
+    headers = _detect_section_headers(text)
+
+    # If no sections detected, return full text
+    if not headers:
+        result["full_text"] = text.strip()
+        return result
+
+    # Extract each section's content
+    for i, (section_name, header_start, header_end) in enumerate(headers):
+        # Content starts after the header line
+        content_start = header_end + 1
+
+        # Content ends at start of next section or end of text
+        if i + 1 < len(headers):
+            content_end = headers[i + 1][1]
         else:
-            end_idx = len(text)
+            content_end = len(text)
 
-        sections[section_name] = text[start_idx:end_idx].strip()
+        section_text = _extract_section_text(text, content_start, content_end)
 
-    # Ensure all expected keys exist even if not found
-    for section in ["skills", "experience", "projects", "education", "summary"]:
-        if section not in sections:
-            sections[section] = ""
+        # Only update if we haven't already found this section
+        # (keeps the first occurrence)
+        if not result[section_name]:
+            result[section_name] = section_text
 
-    sections["full_text"] = text
-    return sections
+    return result
