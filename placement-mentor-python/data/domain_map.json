@@ -1,0 +1,621 @@
+{
+  "frontend_developer": {
+    "display_name": "Frontend Developer",
+    "clusters": [
+      [
+        "javascript",
+        "typescript"
+      ],
+      [
+        "react",
+        "angular",
+        "vue.js",
+        "next.js",
+        "svelte"
+      ],
+      [
+        "html",
+        "css",
+        "sass",
+        "tailwind css",
+        "bootstrap"
+      ],
+      [
+        "webpack",
+        "vite",
+        "redux",
+        "rest api"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "backend_developer": {
+    "display_name": "Backend Developer",
+    "clusters": [
+      [
+        "python",
+        "javascript",
+        "java",
+        "go",
+        "c#",
+        "php"
+      ],
+      [
+        "express.js",
+        "django",
+        "fastapi",
+        "spring boot",
+        "flask",
+        "nest.js",
+        "asp.net",
+        "laravel"
+      ],
+      [
+        "mysql",
+        "postgresql",
+        "mongodb",
+        "microsoft sql server",
+        "redis"
+      ],
+      [
+        "rest api",
+        "graphql",
+        "grpc"
+      ],
+      [
+        "docker",
+        "nginx"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "fullstack_developer": {
+    "display_name": "Fullstack Developer",
+    "clusters": [
+      [
+        "javascript",
+        "typescript",
+        "python",
+        "java"
+      ],
+      [
+        "react",
+        "angular",
+        "vue.js",
+        "next.js"
+      ],
+      [
+        "express.js",
+        "django",
+        "fastapi",
+        "spring boot",
+        "flask",
+        "nest.js"
+      ],
+      [
+        "mysql",
+        "postgresql",
+        "mongodb",
+        "firebase"
+      ],
+      [
+        "docker",
+        "tailwind css",
+        "rest api"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "data_analyst": {
+    "display_name": "Data Analyst",
+    "clusters": [
+      [
+        "python",
+        "r",
+        "sql"
+      ],
+      [
+        "pandas",
+        "numpy"
+      ],
+      [
+        "tableau",
+        "power bi",
+        "microsoft excel",
+        "matplotlib",
+        "seaborn"
+      ],
+      [
+        "mysql",
+        "postgresql",
+        "microsoft sql server"
+      ],
+      [
+        "statistics",
+        "probability and statistics"
+      ]
+    ]
+  },
+  "data_scientist": {
+    "display_name": "Data Scientist",
+    "clusters": [
+      [
+        "python",
+        "r"
+      ],
+      [
+        "pandas",
+        "numpy",
+        "scikit-learn"
+      ],
+      [
+        "tensorflow",
+        "pytorch",
+        "keras"
+      ],
+      [
+        "machine learning",
+        "deep learning",
+        "neural networks"
+      ],
+      [
+        "statistics",
+        "linear algebra"
+      ],
+      [
+        "sql",
+        "mysql",
+        "postgresql"
+      ],
+      [
+        "jupyter notebook",
+        "matplotlib",
+        "seaborn"
+      ]
+    ]
+  },
+  "machine_learning_engineer": {
+    "display_name": "Machine Learning Engineer",
+    "clusters": [
+      [
+        "python"
+      ],
+      [
+        "tensorflow",
+        "pytorch",
+        "keras",
+        "scikit-learn",
+        "hugging face"
+      ],
+      [
+        "machine learning",
+        "deep learning",
+        "natural language processing"
+      ],
+      [
+        "docker",
+        "kubernetes",
+        "aws",
+        "google cloud platform"
+      ],
+      [
+        "sql",
+        "mongodb",
+        "postgresql"
+      ]
+    ]
+  },
+  "devops_engineer": {
+    "display_name": "DevOps Engineer",
+    "clusters": [
+      [
+        "python",
+        "bash",
+        "go"
+      ],
+      [
+        "docker",
+        "kubernetes"
+      ],
+      [
+        "jenkins",
+        "github actions",
+        "gitlab ci",
+        "azure devops",
+        "ci/cd"
+      ],
+      [
+        "aws",
+        "microsoft azure",
+        "google cloud platform"
+      ],
+      [
+        "terraform",
+        "ansible",
+        "pulumi"
+      ],
+      [
+        "git",
+        "linux"
+      ]
+    ]
+  },
+  "android_developer": {
+    "display_name": "Android Developer",
+    "clusters": [
+      [
+        "kotlin",
+        "java"
+      ],
+      [
+        "android development",
+        "jetpack compose"
+      ],
+      [
+        "firebase",
+        "mysql",
+        "sqlite",
+        "room database"
+      ],
+      [
+        "rest api",
+        "retrofit"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "ios_developer": {
+    "display_name": "iOS Developer",
+    "clusters": [
+      [
+        "swift",
+        "objective-c"
+      ],
+      [
+        "ios development",
+        "swiftui"
+      ],
+      [
+        "firebase",
+        "sqlite",
+        "core data"
+      ],
+      [
+        "rest api"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "cloud_engineer": {
+    "display_name": "Cloud Engineer",
+    "clusters": [
+      [
+        "aws",
+        "microsoft azure",
+        "google cloud platform"
+      ],
+      [
+        "terraform",
+        "ansible",
+        "pulumi"
+      ],
+      [
+        "docker",
+        "kubernetes"
+      ],
+      [
+        "python",
+        "bash",
+        "go"
+      ],
+      [
+        "linux"
+      ]
+    ]
+  },
+  "cybersecurity_analyst": {
+    "display_name": "Cybersecurity Analyst",
+    "clusters": [
+      [
+        "python",
+        "bash",
+        "c",
+        "c++"
+      ],
+      [
+        "cybersecurity",
+        "network security"
+      ],
+      [
+        "linux"
+      ],
+      [
+        "computer networks",
+        "tcp/ip"
+      ],
+      [
+        "cryptography"
+      ]
+    ]
+  },
+  "database_administrator": {
+    "display_name": "Database Administrator",
+    "clusters": [
+      [
+        "mysql",
+        "postgresql",
+        "microsoft sql server",
+        "oracle database",
+        "mongodb"
+      ],
+      [
+        "pl/sql",
+        "t-sql",
+        "sql"
+      ],
+      [
+        "database management systems"
+      ],
+      [
+        "python",
+        "bash"
+      ],
+      [
+        "git",
+        "linux"
+      ]
+    ]
+  },
+  "qa_engineer": {
+    "display_name": "QA Engineer",
+    "clusters": [
+      [
+        "selenium",
+        "cypress",
+        "jest",
+        "junit",
+        "pytest"
+      ],
+      [
+        "python",
+        "javascript",
+        "java"
+      ],
+      [
+        "rest api",
+        "postman"
+      ],
+      [
+        "git"
+      ],
+      [
+        "agile methodology",
+        "scrum"
+      ]
+    ]
+  },
+  "blockchain_developer": {
+    "display_name": "Blockchain Developer",
+    "clusters": [
+      [
+        "solidity",
+        "javascript",
+        "python",
+        "go"
+      ],
+      [
+        "blockchain",
+        "ethereum",
+        "web3"
+      ],
+      [
+        "smart contracts"
+      ],
+      [
+        "rest api",
+        "node.js"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "embedded_systems_engineer": {
+    "display_name": "Embedded Systems Engineer",
+    "clusters": [
+      [
+        "c",
+        "c++"
+      ],
+      [
+        "embedded systems",
+        "iot"
+      ],
+      [
+        "operating systems",
+        "linux"
+      ],
+      [
+        "computer networks"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "react_native_developer": {
+    "display_name": "React Native Developer",
+    "clusters": [
+      [
+        "javascript",
+        "typescript"
+      ],
+      [
+        "react native",
+        "react"
+      ],
+      [
+        "rest api",
+        "graphql",
+        "firebase"
+      ],
+      [
+        "redux",
+        "context api"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "flutter_developer": {
+    "display_name": "Flutter Developer",
+    "clusters": [
+      [
+        "dart"
+      ],
+      [
+        "flutter"
+      ],
+      [
+        "firebase",
+        "rest api"
+      ],
+      [
+        "sqlite",
+        "mongodb"
+      ],
+      [
+        "git"
+      ]
+    ]
+  },
+  "ai_engineer": {
+    "display_name": "AI Engineer",
+    "clusters": [
+      [
+        "python"
+      ],
+      [
+        "tensorflow",
+        "pytorch",
+        "keras",
+        "hugging face"
+      ],
+      [
+        "machine learning",
+        "deep learning",
+        "natural language processing",
+        "large language models"
+      ],
+      [
+        "docker",
+        "aws",
+        "google cloud platform"
+      ],
+      [
+        "sql",
+        "mongodb",
+        "postgresql"
+      ]
+    ]
+  },
+  "game_developer": {
+    "display_name": "Game Developer",
+    "clusters": [
+      [
+        "c++",
+        "c#",
+        "python"
+      ],
+      [
+        "unity",
+        "unreal engine"
+      ],
+      [
+        "linear algebra",
+        "mathematics"
+      ],
+      [
+        "git"
+      ],
+      [
+        "object oriented programming"
+      ]
+    ]
+  },
+  "site_reliability_engineer": {
+    "display_name": "Site Reliability Engineer",
+    "clusters": [
+      [
+        "python",
+        "go",
+        "bash"
+      ],
+      [
+        "docker",
+        "kubernetes"
+      ],
+      [
+        "prometheus",
+        "grafana",
+        "elk stack"
+      ],
+      [
+        "aws",
+        "microsoft azure",
+        "google cloud platform"
+      ],
+      [
+        "terraform",
+        "ansible",
+        "ci/cd"
+      ]
+    ]
+  },
+  "data_engineer": {
+    "display_name": "Data Engineer",
+    "clusters": [
+      [
+        "python",
+        "scala",
+        "java",
+        "sql"
+      ],
+      [
+        "apache spark",
+        "apache kafka",
+        "hadoop"
+      ],
+      [
+        "postgresql",
+        "mongodb",
+        "mysql",
+        "microsoft sql server",
+        "elasticsearch"
+      ],
+      [
+        "aws",
+        "microsoft azure",
+        "google cloud platform"
+      ],
+      [
+        "airflow",
+        "docker"
+      ],
+      [
+        "git"
+      ]
+    ]
+  }
+}

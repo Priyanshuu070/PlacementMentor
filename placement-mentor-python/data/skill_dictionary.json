@@ -4651,5 +4651,205 @@
     "category": "domains",
     "subcategory": "machine_learning",
     "frequency_weight": 6
+  },
+  {
+    "canonical_name": "neural networks",
+    "aliases": [
+      "Neural Network",
+      "Neural Nets",
+      "NN",
+      "Artificial Neural Networks",
+      "ANN",
+      "neural network",
+      "deep neural networks"
+    ],
+    "category": "cs_fundamentals",
+    "subcategory": "deep_learning",
+    "frequency_weight": 8
+  },
+  {
+    "canonical_name": "pl/sql",
+    "aliases": [
+      "PL/SQL",
+      "PLSQL",
+      "Oracle PL/SQL",
+      "pl sql",
+      "procedural language sql"
+    ],
+    "category": "databases",
+    "subcategory": "relational",
+    "frequency_weight": 7
+  },
+  {
+    "canonical_name": "scrum",
+    "aliases": [
+      "Scrum",
+      "Scrum Framework",
+      "Scrum Methodology",
+      "scrum master",
+      "scrum agile"
+    ],
+    "category": "tools",
+    "subcategory": "project_management",
+    "frequency_weight": 6
+  },
+  {
+    "canonical_name": "solidity",
+    "aliases": [
+      "Solidity",
+      "Solidity Programming",
+      "solidity language",
+      "solidity smart contracts"
+    ],
+    "category": "programming_languages",
+    "subcategory": "blockchain",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "ethereum",
+    "aliases": [
+      "Ethereum",
+      "ETH",
+      "Ethereum Blockchain",
+      "ethereum network",
+      "ethereum development"
+    ],
+    "category": "domains",
+    "subcategory": "blockchain",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "web3",
+    "aliases": [
+      "Web3",
+      "Web 3.0",
+      "Web3.js",
+      "web3js",
+      "decentralized web",
+      "web3 development"
+    ],
+    "category": "domains",
+    "subcategory": "blockchain",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "smart contracts",
+    "aliases": [
+      "Smart Contract",
+      "Smart Contracts",
+      "Blockchain Smart Contracts",
+      "smart contract development",
+      "dapps smart contracts"
+    ],
+    "category": "domains",
+    "subcategory": "blockchain",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "unity",
+    "aliases": [
+      "Unity",
+      "Unity3D",
+      "Unity Engine",
+      "Unity Game Engine",
+      "unity development",
+      "unity 3d"
+    ],
+    "category": "tools",
+    "subcategory": "game_development",
+    "frequency_weight": 6
+  },
+  {
+    "canonical_name": "unreal engine",
+    "aliases": [
+      "Unreal Engine",
+      "Unreal",
+      "UE4",
+      "UE5",
+      "Unreal Engine 4",
+      "Unreal Engine 5",
+      "unreal development"
+    ],
+    "category": "tools",
+    "subcategory": "game_development",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "objective-c",
+    "aliases": [
+      "Objective-C",
+      "Objective C",
+      "ObjC",
+      "Obj-C",
+      "objective c programming",
+      "objective-c language"
+    ],
+    "category": "programming_languages",
+    "subcategory": "mobile",
+    "frequency_weight": 5
+  },
+  {
+    "canonical_name": "swiftui",
+    "aliases": [
+      "SwiftUI",
+      "Swift UI",
+      "swiftui framework",
+      "swiftui ios",
+      "swiftui development"
+    ],
+    "category": "frameworks_libraries",
+    "subcategory": "mobile",
+    "frequency_weight": 6
+  },
+  {
+    "canonical_name": "core data",
+    "aliases": [
+      "Core Data",
+      "CoreData",
+      "core data framework",
+      "ios core data",
+      "apple core data"
+    ],
+    "category": "frameworks_libraries",
+    "subcategory": "mobile",
+    "frequency_weight": 4
+  },
+  {
+    "canonical_name": "pulumi",
+    "aliases": [
+      "Pulumi",
+      "pulumi iac",
+      "pulumi infrastructure",
+      "pulumi cloud"
+    ],
+    "category": "cloud_devops",
+    "subcategory": "infrastructure_as_code",
+    "frequency_weight": 4
+  },
+  {
+    "canonical_name": "embedded systems",
+    "aliases": [
+      "Embedded Systems",
+      "Embedded System",
+      "embedded programming",
+      "embedded development",
+      "embedded software"
+    ],
+    "category": "domains",
+    "subcategory": "embedded",
+    "frequency_weight": 6
+  },
+  {
+    "canonical_name": "mathematics",
+    "aliases": [
+      "Mathematics",
+      "Math",
+      "Maths",
+      "mathematics for ml",
+      "mathematical foundations"
+    ],
+    "category": "cs_fundamentals",
+    "subcategory": "mathematics",
+    "frequency_weight": 5
   }
 ]
