@@ -9,6 +9,7 @@ from typing import List, Dict, Any, Optional
 _skill_dictionary: List[Dict[str, Any]] = []
 _canonical_lookup: Dict[str, str] = {}  # Maps lowercase canonical/alias -> canonical_name
 _weight_lookup: Dict[str, int] = {}  # Maps canonical_name -> frequency_weight
+_category_lookup: Dict[str, Dict[str, str]] = {}  # Maps canonical_name -> {category, subcategory}
 _loaded: bool = False
 
 
@@ -31,7 +32,7 @@ def _load_dictionary() -> None:
     Builds lookup tables for fast canonical name and weight retrieval.
     Called automatically on first access to dictionary functions.
     """
-    global _skill_dictionary, _canonical_lookup, _weight_lookup, _loaded
+    global _skill_dictionary, _canonical_lookup, _weight_lookup, _category_lookup, _loaded
 
     if _loaded:
         return
@@ -69,6 +70,12 @@ def _load_dictionary() -> None:
 
         # Store weight
         _weight_lookup[canonical] = skill.get("frequency_weight", 1)
+
+        # Store category and subcategory
+        _category_lookup[canonical] = {
+            "category": skill.get("category", ""),
+            "subcategory": skill.get("subcategory", "")
+        }
 
     _loaded = True
 
@@ -155,6 +162,64 @@ def get_skill_weight(canonical_name: str) -> int:
         return 1
 
     return _weight_lookup.get(canonical_name, 1)
+
+
+def get_skill_category(canonical_name: str) -> Dict[str, str]:
+    """
+    Get the category and subcategory for a skill by its canonical name.
+
+    Args:
+        canonical_name: The canonical skill name (e.g., "python", "react").
+
+    Returns:
+        Dictionary with 'category' and 'subcategory' keys.
+        Returns empty strings if skill not found.
+    """
+    _load_dictionary()
+
+    if not canonical_name:
+        return {"category": "", "subcategory": ""}
+
+    return _category_lookup.get(canonical_name, {"category": "", "subcategory": ""})
+
+
+# Explicit whitelist of role labels (job titles, not technical skills)
+ROLE_LABELS = {
+    "full stack development",
+    "front end development",
+    "back end development",
+    "web development",
+    "android development",
+    "ios development",
+    "mobile development",
+    "software development",
+    "software engineering",
+    "data engineering",
+    "embedded development",
+    "game development",
+    "cloud engineering",
+    "devops engineering",
+    "blockchain development"
+}
+
+
+def is_role_label(canonical_name: str) -> bool:
+    """
+    Check if a skill is actually a role label rather than a matchable skill.
+
+    Uses an explicit whitelist of role labels that represent job titles
+    rather than actual technical skills.
+
+    Args:
+        canonical_name: The canonical skill name to check.
+
+    Returns:
+        True if the skill is a role label, False otherwise.
+    """
+    if not canonical_name:
+        return False
+
+    return canonical_name.lower() in ROLE_LABELS
 
 
 def search_skills_in_text(text: str) -> List[str]:

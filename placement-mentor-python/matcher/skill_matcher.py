@@ -2,7 +2,7 @@
 
 from typing import List, Dict
 
-from matcher.skill_dictionary import search_skills_in_text
+from matcher.skill_dictionary import search_skills_in_text, is_role_label
 
 
 def extract_skills_from_text(text: str) -> List[str]:
@@ -12,6 +12,10 @@ def extract_skills_from_text(text: str) -> List[str]:
     Scans the text for known skills from the skill dictionary,
     matching against both canonical names and aliases using
     word boundary matching to avoid partial matches.
+
+    Filters out role labels (skills in 'domains' category with
+    subcategory containing 'development' or 'engineering') as
+    these represent job roles rather than matchable skills.
 
     Args:
         text: Text to scan for skills (e.g., resume content, job description).
@@ -26,8 +30,11 @@ def extract_skills_from_text(text: str) -> List[str]:
     # Use the skill dictionary's search function
     skills = search_skills_in_text(text)
 
+    # Filter out role labels
+    filtered_skills = [skill for skill in skills if not is_role_label(skill)]
+
     # Return sorted for consistent output
-    return sorted(skills)
+    return sorted(filtered_skills)
 
 
 def match_skills(resume_skills: List[str], jd_skills: List[str]) -> Dict[str, List[str]]:

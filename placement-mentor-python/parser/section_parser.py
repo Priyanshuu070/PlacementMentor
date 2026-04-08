@@ -29,6 +29,9 @@ SECTION_KEYWORDS = {
     "certifications": [
         "certifications", "certificates", "certification", "certificate",
         "licenses", "credentials", "professional certifications"
+    ],
+    "internships": [
+        "internships", "internship", "internship experience", "training"
     ]
 }
 
@@ -140,6 +143,7 @@ def extract_sections(text: str) -> Dict[str, str]:
         "education": "",
         "summary": "",
         "certifications": "",
+        "internships": "",
         "full_text": ""
     }
 
