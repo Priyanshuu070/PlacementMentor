@@ -9,8 +9,8 @@ export const APP_CONFIG = {
 export const API_CONFIG = {
   OPENROUTER: {
     BASE_URL: 'https://openrouter.ai/api/v1',
-    // DECISION: Using google/gemma-2-9b-it:free as it's a reliable free model
-    DEFAULT_MODEL: 'google/gemma-2-9b-it:free',
+    // DECISION: Using an available free model from OpenRouter
+    DEFAULT_MODEL: 'google/gemma-4-26b-a4b-it:free',
     MAX_TOKENS: 4000,
     TEMPERATURE: 0.7,
   },

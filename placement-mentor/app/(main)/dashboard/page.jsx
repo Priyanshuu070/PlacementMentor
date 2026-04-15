@@ -7,9 +7,33 @@ import { useResumeAnalysis } from "@/context/ResumeAnalysis.context";
 import { supabase } from "@/services/supabaseClient";
 import Link from "next/link";
 
+const DOMAINS = [
+  { value: "frontend_developer", label: "Frontend Developer" },
+  { value: "backend_developer", label: "Backend Developer" },
+  { value: "fullstack_developer", label: "Fullstack Developer" },
+  { value: "data_analyst", label: "Data Analyst" },
+  { value: "data_scientist", label: "Data Scientist" },
+  { value: "machine_learning_engineer", label: "Machine Learning Engineer" },
+  { value: "devops_engineer", label: "DevOps Engineer" },
+  { value: "android_developer", label: "Android Developer" },
+  { value: "ios_developer", label: "iOS Developer" },
+  { value: "cloud_engineer", label: "Cloud Engineer" },
+  { value: "cybersecurity_analyst", label: "Cybersecurity Analyst" },
+  { value: "database_administrator", label: "Database Administrator" },
+  { value: "qa_engineer", label: "QA Engineer" },
+  { value: "blockchain_developer", label: "Blockchain Developer" },
+  { value: "embedded_systems_engineer", label: "Embedded Systems Engineer" },
+  { value: "react_native_developer", label: "React Native Developer" },
+  { value: "flutter_developer", label: "Flutter Developer" },
+  { value: "ai_engineer", label: "AI Engineer" },
+  { value: "game_developer", label: "Game Developer" },
+  { value: "site_reliability_engineer", label: "Site Reliability Engineer" },
+  { value: "data_engineer", label: "Data Engineer" }
+];
+
 export default function DashboardPage() {
   const { user } = useUser();
-  const { setResumeData } = useResumeAnalysis();
+  const { resumeData, setResumeData } = useResumeAnalysis();
   const router = useRouter();
   const fileInputRef = useRef(null);
 
@@ -152,12 +176,13 @@ export default function DashboardPage() {
   };
 
   // Validation
-  const isInputsValid = resumeFile && jdText.trim().length >= 100;
+  const isInputsValid = resumeFile && jdText.trim().length >= 100 && resumeData?.domainName;
 
   // Option handlers
   const handleOptionA = () => {
     if (!isInputsValid) return;
-    setResumeData({
+    setResumeData(prev => ({
+      ...prev,
       resumeFile,
       resumeFileName,
       resumeText: '', // Will be extracted later
@@ -166,13 +191,14 @@ export default function DashboardPage() {
       userIntent: 'analysis_only',
       analysisResult: null,
       sessionId: null
-    });
+    }));
     router.push('/results');
   };
 
   const handleOptionB = () => {
     if (!isInputsValid) return;
-    setResumeData({
+    setResumeData(prev => ({
+      ...prev,
       resumeFile,
       resumeFileName,
       resumeText: '',
@@ -181,7 +207,7 @@ export default function DashboardPage() {
       userIntent: 'mock_interview',
       analysisResult: null,
       sessionId: null
-    });
+    }));
     router.push('/interview-setup');
   };
 
@@ -336,6 +362,48 @@ export default function DashboardPage() {
               </p>
             )}
           </div>
+
+          {/* Domain Selection */}
+          <div>
+            <label 
+              className="block mb-2"
+              style={{ fontWeight: 600, color: 'var(--text-primary)' }}
+            >
+              Target Role
+            </label>
+            <select
+              value={resumeData?.domainName || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                const label = DOMAINS.find(d => d.value === value)?.label || '';
+                setResumeData(prev => ({ 
+                  ...prev, 
+                  domainName: value, 
+                  domainDisplayName: label 
+                }));
+              }}
+              className="w-full rounded-lg p-4 transition-colors"
+              style={{
+                border: '1px solid var(--border-default)',
+                background: 'var(--bg-white)',
+                color: resumeData?.domainName ? 'var(--text-primary)' : 'var(--text-muted)',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--primary-blue)'}
+              onBlurCapture={(e) => e.target.style.borderColor = 'var(--border-default)'}
+            >
+              <option value="" disabled>Select your target role...</option>
+              {DOMAINS.map(domain => (
+                <option key={domain.value} value={domain.value}>
+                  {domain.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+              Can't find your role? We're adding more soon.
+            </p>
+          </div>
         </div>
 
         {/* Right Column - Options */}
@@ -353,7 +421,7 @@ export default function DashboardPage() {
               opacity: isInputsValid ? 1 : 0.5,
               pointerEvents: isInputsValid ? 'auto' : 'none'
             }}
-            title={!isInputsValid ? 'Please upload your resume and job description first' : undefined}
+            title={!isInputsValid ? 'Please upload your resume, job description, and select a target role first' : undefined}
           >
             {/* Option A - Analyse Resume */}
             <div 

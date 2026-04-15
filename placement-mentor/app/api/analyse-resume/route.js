@@ -1,100 +1,130 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { supabase } from '@/services/supabaseClient';
 
-/**
- * Resume Analysis API Endpoint
- * 
- * This endpoint will connect to the Python resume analysis microservice.
- * Currently returns a placeholder response until the Python service is built.
- * 
- * Expected flow:
- * 1. Receive resume PDF file + job description text
- * 2. Forward to Python microservice for:
- *    - PDF text extraction
- *    - Skill detection from resume
- *    - Skill requirements from JD
- *    - Gap analysis
- *    - ATS score calculation
- *    - Suggestions generation
- * 3. Return structured analysis result
- */
 export async function POST(request) {
   try {
-    const formData = await request.formData()
-    const resumeFile = formData.get('resume')
-    const jdText = formData.get('jd_text')
-    
-    // Validate required inputs
-    if (!resumeFile) {
-      return NextResponse.json(
-        { success: false, error: 'Resume file is required' },
-        { status: 400 }
-      )
+    // 2. Get user session from Supabase auth to verify authentication
+    const authHeader = request.headers.get('authorization');
+    let isAuthenticated = false;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (user && !error) isAuthenticated = true;
+    } else {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session && !error) isAuthenticated = true;
     }
-    
-    if (!jdText) {
+
+    if (!isAuthenticated) {
       return NextResponse.json(
-        { success: false, error: 'Job description is required' },
-        { status: 400 }
-      )
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
-    
+
+    // 1. Accept POST request with FormData
+    const formData = await request.formData();
+    const resumeFile = formData.get('resume');
+    const jdText = formData.get('jd_text');
+    const userEmail = formData.get('user_email');
+    const domainName = formData.get('domain_name');
+    const sessionId = formData.get('session_id');
+
+    // Basic validation
+    if (!resumeFile || !jdText || !userEmail || !domainName) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
     // Validate file type
     if (resumeFile.type !== 'application/pdf') {
       return NextResponse.json(
-        { success: false, error: 'Resume must be a PDF file' },
+        { success: false, error: 'Invalid file type. Only PDF is allowed.' },
         { status: 400 }
-      )
+      );
     }
+
+    // 3. Forward to Python service
+    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
     
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024
-    if (resumeFile.size > maxSize) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+    let pythonResponse;
+    try {
+      pythonResponse = await fetch(`${pythonServiceUrl}/analyse`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      // 4. If Python service is unreachable or times out
       return NextResponse.json(
-        { success: false, error: 'Resume file must be under 5MB' },
-        { status: 400 }
-      )
+        { success: false, error: 'Analysis service unavailable' },
+        { status: 503 }
+      );
     }
+
+    if (!pythonResponse.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Analysis service returned an error' },
+        { status: pythonResponse.status }
+      );
+    }
+
+    const result = await pythonResponse.json();
+
+    // 5a. Save to Supabase resume_analysis table
+    let insertedRowId = sessionId || null;
     
-    // TODO: Forward to Python microservice when available
-    // const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000'
-    // 
-    // const response = await fetch(`${pythonServiceUrl}/analyse`, {
-    //   method: 'POST',
-    //   body: formData
-    // })
-    // 
-    // if (!response.ok) {
-    //   const error = await response.json()
-    //   return NextResponse.json(
-    //     { success: false, error: error.message || 'Analysis service error' },
-    //     { status: response.status }
-    //   )
-    // }
-    // 
-    // const analysisResult = await response.json()
-    // return NextResponse.json({ success: true, ...analysisResult })
-    
-    // Placeholder response until Python service is connected
-    return NextResponse.json({
-      success: false,
-      message: 'Resume analysis engine not yet connected',
-      placeholder: true,
-      // Expected response structure when connected:
-      expectedFormat: {
-        atsScore: 'number (0-100)',
-        coverageScore: 'number (0-100)',
-        resumeSkills: 'string[] - detected skills from resume',
-        jdSkills: 'string[] - required skills from JD',
-        skillGaps: 'string[] - missing skills',
-        suggestions: 'string[] - improvement suggestions',
-        jobPosition: 'string - detected or extracted job title'
+    try {
+      const { data: savedData, error: saveError } = await supabase
+        .from('resume_analysis')
+        .insert([{
+          user_email: userEmail,
+          interview_id: null,
+          resume_raw_text: result.resume_raw_text,
+          jd_raw_text: jdText,
+          job_position: result.job_position,
+          detected_skills_resume: result.detected_skills_resume,
+          detected_skills_jd: result.detected_skills_jd,
+          skill_gaps: result.skill_gaps,
+          coverage_score: result.coverage_score,
+          ats_score: result.ats_score,
+          suggestions: result.suggestions
+        }])
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error('Supabase save error:', saveError);
+        // Do not fail the request, proceed to return results
+      } else if (savedData) {
+        // 5b. Get the inserted row id
+        insertedRowId = savedData.id; 
       }
-    }, { status: 503 })
-    
+    } catch (dbError) {
+      console.error('Unexpected DB error:', dbError);
+    }
+
+    // 5c. Return full response to frontend
+    return NextResponse.json({
+      success: true,
+      sessionId: insertedRowId,
+      ...result
+    });
+
   } catch (error) {
+    console.error('Error in analyse-resume route:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    );
   }
 }
+

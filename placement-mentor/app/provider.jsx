@@ -56,24 +56,21 @@ export default function Provider({ children }) {
             created_at: new Date().toISOString()
           };
 
-          const { data: createdUser, error: createError } = await supabase
+          const { error: createError } = await supabase
             .from('Users')
-            .insert([newUserData])
-            .select()
-            .single();
+            .upsert([newUserData], { onConflict: 'email' });
 
           if (createError) {
             console.error('Error creating user:', createError);
-            setLoading(false);
-            return;
+            // Don't block the user, just set the state and continue!
           }
 
           setUser({
-            Name: createdUser.Name,
-            email: createdUser.email,
-            pfp: createdUser.pfp,
-            credits: createdUser.credits,
-            created_at: createdUser.created_at
+            Name: newUserData.Name,
+            email: newUserData.email,
+            pfp: newUserData.pfp,
+            credits: newUserData.credits,
+            created_at: newUserData.created_at
           });
           router.push('/dashboard');
         }

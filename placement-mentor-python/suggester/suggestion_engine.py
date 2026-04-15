@@ -76,14 +76,16 @@ def generate_suggestions(
     # Rule 5: Coverage score < 40%
     if coverage_score < 40 and weight_mode == "standard":
         suggestions.append(
-            "Your resume matches less than 40% of required skills. "
-            "Consider a significant rewrite targeting this role."
+            "You demonstrate fewer than 40% of required skills in "
+            "your projects or experience. Focus on building projects "
+            "that showcase the missing technologies."
         )
     # Rule 6: Coverage score between 40-60%
     elif 40 <= coverage_score < 60 and weight_mode == "standard":
         suggestions.append(
-            "Your resume partially matches this role. "
-            "Focus on adding the missing technical skills."
+            "You partially demonstrate the required skills. "
+            "Strengthen your projects section by incorporating "
+            "more of the required technologies in practice."
         )
 
     # Rule 7: Word count < 200

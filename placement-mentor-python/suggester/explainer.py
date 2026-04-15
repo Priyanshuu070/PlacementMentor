@@ -130,7 +130,7 @@ def generate_explanation(
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "google/gemma-2-9b-it:free",
+        "model": "google/gemma-4-26b-a4b-it:free",
         "messages": [
             {"role": "user", "content": prompt}
         ],

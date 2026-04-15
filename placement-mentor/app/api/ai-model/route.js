@@ -136,11 +136,16 @@ export async function POST(req) {
  */
 function constructInterviewPrompt(formData) {
   const {
-    jobPosition,
+    jobPosition = '',
     jobDescription,
     experienceLevel,
     interviewDuration,
-    difficultyLevel
+    difficultyLevel,
+    demonstratedSkills = [],
+    isolatedSkills = [],
+    missingSkills = [],
+    domainMatchScore = null,
+    domainName = ''
   } = formData;
   
   // Convert experience level to human-readable format
@@ -156,6 +161,31 @@ function constructInterviewPrompt(formData) {
   const durationMatch = String(durationString).match(/(\d+)/);
   const durationInMinutes = durationMatch ? parseInt(durationMatch[1]) : 30;
   const suggestedQuestionCount = Math.max(5, Math.floor(durationInMinutes / 5));
+
+  const hasResumeContext = demonstratedSkills.length > 0;
+
+  const resumeContextBlock = hasResumeContext ? `
+CANDIDATE PROFILE (use this to personalize questions):
+- Skills demonstrated in projects/experience: 
+  ${demonstratedSkills.join(', ')}
+- Skills listed but not demonstrated in projects: 
+  ${isolatedSkills.join(', ')}
+- Required skills the candidate is missing: 
+  ${missingSkills.join(', ')}
+- Domain match score: ${domainMatchScore}%
+
+Question strategy based on profile:
+1. For demonstrated skills: ask deep technical questions
+   to probe actual understanding and experience depth
+2. For isolated skills (listed but unproven): ask the 
+   candidate to explain HOW they have used this skill
+   with a specific example. These are verification questions.
+3. For missing skills that are critical to the role: 
+   ask awareness questions like "How would you approach 
+   learning X" or "What is your understanding of X"
+4. Weight questions toward demonstrated and isolated 
+   skills since candidate has exposure to these
+` : '';
   
   return `
 You are an experienced AI Interview Engineer at a top-tier tech company.
@@ -168,7 +198,7 @@ CANDIDATE PROFILE AND ROLE DETAILS:
 - Job Position: ${jobPosition}
 - Role Description: ${jobDescription}
 - Candidate Experience Level: ${experienceLevelText}
-
+${resumeContextBlock}
 INTERVIEW DESIGN PARAMETERS:
 - Total Interview Duration: ${interviewDuration}
 - Difficulty Level: ${difficultyLevel}

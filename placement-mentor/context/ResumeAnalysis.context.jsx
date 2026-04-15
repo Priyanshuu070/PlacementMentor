@@ -9,7 +9,9 @@ const initialState = {
   jobPosition: '',
   userIntent: null, // 'analysis_only' | 'mock_interview'
   analysisResult: null,
-  sessionId: null
+  sessionId: null,
+  domainName: '',
+  domainDisplayName: ''
 };
 
 export const ResumeAnalysisContext = createContext(null);

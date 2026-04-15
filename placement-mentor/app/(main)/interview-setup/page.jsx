@@ -66,6 +66,11 @@ export default function InterviewSetupPage() {
       const jobPosition = resumeData.jobPosition || 'Target Role';
 
       // Call API to generate questions
+      console.log('Resume context being passed:', {
+        demonstratedSkills: resumeData?.analysisResult?.skills?.demonstrated_skills?.length || 0,
+        missingSkills: resumeData?.analysisResult?.skills?.missing_skills?.length || 0,
+      });
+
       const response = await fetch('/api/ai-model', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,7 +79,12 @@ export default function InterviewSetupPage() {
           jobDescription: resumeData.jdText,
           experienceLevel: 'mid', // DECISION: Default to mid-level
           interviewDuration: `${duration} minutes`,
-          difficultyLevel: difficulty
+          difficultyLevel: difficulty,
+          demonstratedSkills: resumeData?.analysisResult?.skills?.demonstrated_skills ?? [],
+          isolatedSkills: resumeData?.analysisResult?.skills?.isolated_skills ?? [],
+          missingSkills: resumeData?.analysisResult?.skills?.missing_skills ?? [],
+          domainMatchScore: resumeData?.analysisResult?.domain_match?.overall_score ?? null,
+          domainName: resumeData?.domainName ?? ''
         })
       });
 
@@ -89,10 +99,14 @@ export default function InterviewSetupPage() {
       // Generate interview ID
       const newInterviewId = uuidv4();
 
+      // Grab auth user directly in case context user is missing
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const finalEmail = user?.email || authUser?.email;
+
       // Save to InterviewDetails table
       const { error: insertError } = await supabase
         .from('InterviewDetails')
-        .insert({
+        .insert([{
           interview_id: newInterviewId,
           job_position: jobPosition,
           job_description: resumeData.jdText,
@@ -100,13 +114,13 @@ export default function InterviewSetupPage() {
           difficulty_level: difficulty,
           interview_time: duration,
           interview_questions: data.questions,
-          user_email: user?.email,
-          resume_analysis_id: null // Will be set when analysis completes
-        });
+          user_email: finalEmail,
+          resume_analysis_id: resumeData.sessionId || null
+        }]);
 
       if (insertError) {
-        console.error('Error saving interview:', insertError);
-        toast.error('Failed to save interview details');
+        console.error('Error saving interview:', insertError.message || JSON.stringify(insertError));
+        toast.error(`Failed to save interview details: ${insertError.message || 'Unknown error'}`);
         setLoading(false);
         return;
       }

@@ -23,6 +23,7 @@ export default function InterviewStartPage() {
   const { user } = useUser();
 
   const [interviewData, setInterviewData] = useState(null);
+  const [resumeAnalysis, setResumeAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -53,6 +54,18 @@ export default function InterviewStartPage() {
           console.error('Error fetching interview:', error);
           setError('Failed to load interview details');
           return;
+        }
+
+        if (data?.resume_analysis_id) {
+          const { data: analysisData, error: analysisError } = await supabase
+            .from('resume_analysis')
+            .select('detected_skills_resume, detected_skills_jd, skill_gaps, coverage_score, ats_score, suggestions')
+            .eq('id', data.resume_analysis_id)
+            .single();
+
+          if (!analysisError && analysisData) {
+            setResumeAnalysis(analysisData);
+          }
         }
 
         setInterviewData(data);
@@ -138,13 +151,71 @@ export default function InterviewStartPage() {
           }
         }
 
+        const buildCandidateProfile = (resumeAnalysis) => {
+          if (!resumeAnalysis) {
+            console.log('Resume analysis loaded for interview:', {
+              hasResumeContext: false,
+              matchedSkills: [],
+              skillGaps: [],
+              atsScore: undefined
+            });
+            return '';
+          }
+          
+          // Get contextual vs isolated from the full resume skills
+          // We dont have zone data in DB so approximate:
+          // All resume skills that are also in JD skills = matched
+          const resumeSkills = resumeAnalysis.detected_skills_resume || []
+          const jdSkills = resumeAnalysis.detected_skills_jd || []
+          const skillGaps = resumeAnalysis.skill_gaps || []
+          const matchedSkills = resumeSkills.filter(s => jdSkills.includes(s))
+          
+          console.log('Resume analysis loaded for interview:', {
+            hasResumeContext: !!resumeAnalysis,
+            matchedSkills: matchedSkills,
+            skillGaps: skillGaps,
+            atsScore: resumeAnalysis?.ats_score
+          })
+          
+          return \`
+CANDIDATE RESUME ANALYSIS:
+- Skills matching the role: \${matchedSkills.join(', ') || 'none detected'}
+- Skills required but missing: \${skillGaps.join(', ') || 'none'}
+- Resume-role match score: \${resumeAnalysis.ats_score}%
+
+INTERVIEWING STRATEGY (follow this strictly):
+1. For matched skills: ask deep technical questions.
+   Probe actual depth of knowledge, not just familiarity.
+   Example: dont ask "do you know React" — ask 
+   "walk me through how you handle state management 
+   in a large React application"
+
+2. For missing skills: ask awareness questions only.
+   Example: "How familiar are you with Docker and 
+   what is your understanding of containerization?"
+   Do NOT penalize — treat as learning opportunity.
+
+3. Vary question difficulty based on match score:
+   - Score above 70%: go deep on technical topics
+   - Score 40-70%: balance technical and conceptual
+   - Score below 40%: focus on fundamentals and 
+     learning ability
+
+4. At least 2 questions must directly reference 
+   skills from the candidate's matched skills list.
+   Make these specific to what they know.
+\`
+        }
+
+        const candidateProfile = buildCandidateProfile(resumeAnalysis);
+
         // Build system prompt
-        const systemPrompt = `You are an experienced AI interviewer conducting a mock interview for the position of ${interviewData.job_position}.
+        const systemPrompt = \`You are an experienced AI interviewer conducting a mock interview for the position of \${interviewData.job_position}.
 
-The candidate has ${interviewData.experience_level || 'mid-level'} experience. The difficulty level is ${interviewData.difficulty_level || 'Medium'}.
-
+The candidate has \${interviewData.experience_level || 'mid-level'} experience. The difficulty level is \${interviewData.difficulty_level || 'Medium'}.
+\${candidateProfile}
 Here are the prepared interview questions (ask them one by one, listen to answers, and provide brief follow-ups):
-${questions.map((q, i) => `${i + 1}. ${q.question}`).join('\n')}
+\${questions.map((q, i) => \`\${i + 1}. \${q.question}\`).join('\\n')}
 
 Guidelines:
 - Start with a warm greeting and introduce yourself
